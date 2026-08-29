@@ -14,9 +14,12 @@ import {
   Download,
   ExternalLink,
 } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useLang } from "@/lib/i18n";
 import { downloadVCard } from "@/lib/vcard";
 
 export default function VCardViewer() {
+  const { t } = useLang();
   const { id } = useParams();
   const [rec, setRec] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,7 +30,7 @@ export default function VCardViewer() {
       try {
         setRec(await base44.entities.QRCode.get(id));
       } catch {
-        setError("This contact card is no longer available.");
+        setError(t("vcard_unavail_desc"));
       } finally {
         setLoading(false);
       }
@@ -46,8 +49,8 @@ export default function VCardViewer() {
       <div className="min-h-screen grid place-items-center bg-secondary/30 px-4">
         <div className="text-center max-w-md">
           <Contact className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
-          <h1 className="font-display text-2xl font-semibold mb-2">Contact unavailable</h1>
-          <p className="text-muted-foreground">{error || "This contact card could not be found."}</p>
+          <h1 className="font-display text-2xl font-semibold mb-2">{t("vcard_unavail")}</h1>
+          <p className="text-muted-foreground">{error || t("vcard_unavail_desc")}</p>
         </div>
       </div>
     );
@@ -65,6 +68,7 @@ export default function VCardViewer() {
             </span>
             QR Studio
           </Link>
+          <LanguageSwitcher compact />
         </div>
       </header>
       <main className="flex-1 grid place-items-center px-4 py-10">
@@ -81,9 +85,7 @@ export default function VCardViewer() {
               <h1 className="font-display text-2xl font-semibold">
                 {v.contact_name || v.company_name || "Contact"}
               </h1>
-              {v.job_title && (
-                <p className="text-sm text-muted-foreground mt-0.5">{v.job_title}</p>
-              )}
+              {v.job_title && <p className="text-sm text-muted-foreground mt-0.5">{v.job_title}</p>}
               {v.company_name && v.contact_name && (
                 <p className="text-sm font-medium text-brand mt-1.5">{v.company_name}</p>
               )}
@@ -92,23 +94,15 @@ export default function VCardViewer() {
             <div className="p-6 space-y-1">
               {v.phone && <Row icon={Phone} text={v.phone} href={`tel:${v.phone}`} />}
               {v.whatsapp && (
-                <Row
-                  icon={MessageCircle}
-                  text={v.whatsapp}
-                  href={`https://wa.me/${v.whatsapp.replace(/[^\d]/g, "")}`}
-                />
+                <Row icon={MessageCircle} text={v.whatsapp} href={`https://wa.me/${v.whatsapp.replace(/[^\d]/g, "")}`} />
               )}
               {v.email && <Row icon={Mail} text={v.email} href={`mailto:${v.email}`} />}
-              {v.website && (
-                <Row icon={Globe} text={prettyUrl(v.website)} href={v.website} />
-              )}
+              {v.website && <Row icon={Globe} text={prettyUrl(v.website)} href={v.website} />}
               {v.address && <Row icon={MapPin} text={v.address} href={mapsUrl(v.address)} />}
 
               {socials.length > 0 && (
                 <div className="pt-3 mt-2 border-t border-border">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
-                    Social
-                  </p>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{t("social")}</p>
                   <div className="flex flex-wrap gap-2">
                     {socials.map((s, i) => (
                       <a
@@ -128,17 +122,11 @@ export default function VCardViewer() {
             </div>
           </div>
 
-          <Button
-            onClick={() => downloadVCard(v)}
-            size="lg"
-            className="w-full mt-4"
-          >
+          <Button onClick={() => downloadVCard(v)} size="lg" className="w-full mt-4">
             <Download className="w-4 h-4 mr-2" />
-            Save to contacts
+            {t("save_contact")}
           </Button>
-          <p className="text-xs text-center text-muted-foreground mt-3">
-            Adds this contact to your phone's address book.
-          </p>
+          <p className="text-xs text-center text-muted-foreground mt-3">{t("save_desc")}</p>
         </div>
       </main>
     </div>

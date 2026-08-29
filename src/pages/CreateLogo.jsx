@@ -4,13 +4,13 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FileText, Loader2, Upload, CheckCircle2 } from "lucide-react";
+import { Image as ImageIcon, Loader2, Upload, CheckCircle2 } from "lucide-react";
 import QRPreview from "@/components/QRPreview";
 import { publicUrl } from "@/lib/qr";
 import { useLang } from "@/lib/i18n";
 import { BackLink, Header, ErrorNote, PreviewPanel } from "@/pages/CreateURL";
 
-export default function CreatePPT() {
+export default function CreateLogo() {
   const { t } = useLang();
   const [params] = useSearchParams();
   const editId = params.get("id");
@@ -43,7 +43,7 @@ export default function CreatePPT() {
   const onFile = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (!/\.(ppt|pptx)$/i.test(f.name)) return setError(t("err_ppt_file"));
+    if (!/^image\//.test(f.type)) return setError(t("err_logo_file"));
     setError("");
     setUploading(true);
     setFileName(f.name);
@@ -51,7 +51,7 @@ export default function CreatePPT() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: f });
       setFileUrl(file_url);
     } catch {
-      setError(t("err_ppt_upload"));
+      setError(t("err_logo_upload"));
       setFileName("");
     } finally {
       setUploading(false);
@@ -61,7 +61,7 @@ export default function CreatePPT() {
   const publish = async () => {
     setError("");
     if (!name.trim()) return setError(t("err_name"));
-    if (!fileUrl) return setError(t("err_ppt_file_required"));
+    if (!fileUrl) return setError(t("err_logo_required"));
     setSaving(true);
     try {
       if (record) {
@@ -69,23 +69,23 @@ export default function CreatePPT() {
           name: name.trim(),
           file_url: fileUrl,
           file_name: fileName,
-          target_url: publicUrl(`/f/${record.id}`),
+          target_url: publicUrl(`/l/${record.id}`),
         });
         setRecord(updated);
       } else {
         const created = await base44.entities.QRCode.create({
           name: name.trim(),
-          type: "ppt",
+          type: "logo",
           file_url: fileUrl,
           file_name: fileName,
         });
         const updated = await base44.entities.QRCode.update(created.id, {
-          target_url: publicUrl(`/f/${created.id}`),
+          target_url: publicUrl(`/l/${created.id}`),
         });
         setRecord(updated);
       }
     } catch {
-      setError(t("err_ppt_publish"));
+      setError(t("err_logo_publish"));
     } finally {
       setSaving(false);
     }
@@ -101,7 +101,7 @@ export default function CreatePPT() {
   return (
     <div className="space-y-8">
       <BackLink label={t("back_home")} />
-      <Header icon={FileText} title={t("ppt_title")} subtitle={t("ppt_subtitle")} />
+      <Header icon={ImageIcon} title={t("logo_title")} subtitle={t("logo_subtitle")} />
 
       <div className="grid lg:grid-cols-5 gap-8">
         <div className="lg:col-span-3 space-y-5">
@@ -111,34 +111,34 @@ export default function CreatePPT() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Q3 Investor Deck"
+              placeholder="e.g. Company logo"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>{t("ppt_file_label")}</Label>
+            <Label>{t("logo_label")}</Label>
             <label
               className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border p-8 text-center cursor-pointer transition-colors hover:border-brand/50 hover:bg-secondary/40 ${
                 uploading ? "pointer-events-none opacity-70" : ""
               }`}
             >
-              <input type="file" accept=".ppt,.pptx" className="sr-only" onChange={onFile} />
+              <input type="file" accept="image/*" className="sr-only" onChange={onFile} />
               {uploading ? (
                 <>
                   <Loader2 className="w-6 h-6 animate-spin text-brand" />
-                  <span className="text-sm text-muted-foreground">{t("ppt_uploading")}</span>
+                  <span className="text-sm text-muted-foreground">{t("logo_uploading")}</span>
                 </>
               ) : fileName ? (
                 <>
                   <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                   <span className="text-sm font-medium">{fileName}</span>
-                  <span className="text-xs text-muted-foreground">{t("ppt_replace")}</span>
+                  <span className="text-xs text-muted-foreground">{t("logo_replace")}</span>
                 </>
               ) : (
                 <>
                   <Upload className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-sm font-medium">{t("ppt_upload_click")}</span>
-                  <span className="text-xs text-muted-foreground">{t("ppt_upload_hint")}</span>
+                  <span className="text-sm font-medium">{t("logo_upload_click")}</span>
+                  <span className="text-xs text-muted-foreground">{t("logo_upload_hint")}</span>
                 </>
               )}
             </label>

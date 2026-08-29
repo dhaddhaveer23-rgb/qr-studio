@@ -6,13 +6,16 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
+import { LanguageProvider } from '@/lib/i18n';
 import Layout from '@/components/Layout';
 import Home from '@/pages/Home';
 import CreatePPT from '@/pages/CreatePPT';
+import CreateLogo from '@/pages/CreateLogo';
 import CreateURL from '@/pages/CreateURL';
 import CreateVCard from '@/pages/CreateVCard';
 import Dashboard from '@/pages/Dashboard';
 import FileViewer from '@/pages/FileViewer';
+import LogoViewer from '@/pages/LogoViewer';
 import VCardViewer from '@/pages/VCardViewer';
 
 const AuthenticatedApp = () => {
@@ -44,11 +47,13 @@ const AuthenticatedApp = () => {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/create/ppt" element={<CreatePPT />} />
+        <Route path="/create/logo" element={<CreateLogo />} />
         <Route path="/create/url" element={<CreateURL />} />
         <Route path="/create/vcard" element={<CreateVCard />} />
         <Route path="/dashboard" element={<Dashboard />} />
       </Route>
       <Route path="/f/:id" element={<FileViewer />} />
+      <Route path="/l/:id" element={<LogoViewer />} />
       <Route path="/v/:id" element={<VCardViewer />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
@@ -60,6 +65,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <LanguageProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
@@ -67,6 +73,7 @@ function App() {
         </Router>
         <Toaster />
       </QueryClientProvider>
+      </LanguageProvider>
     </AuthProvider>
   )
 }

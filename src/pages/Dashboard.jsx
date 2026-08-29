@@ -16,20 +16,29 @@ import {
   FileText,
   Link as LinkIcon,
   Contact,
+  Image as ImageIcon,
 } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
-const typeMeta = {
-  ppt: { label: "File", icon: FileText, cls: "bg-violet-500/10 text-violet-600" },
-  url: { label: "URL", icon: LinkIcon, cls: "bg-sky-500/10 text-sky-600" },
-  vcard: { label: "vCard", icon: Contact, cls: "bg-emerald-500/10 text-emerald-600" },
+const editPath = {
+  ppt: "/create/ppt",
+  logo: "/create/logo",
+  url: "/create/url",
+  vcard: "/create/vcard",
 };
 
-const editPath = { ppt: "/create/ppt", url: "/create/url", vcard: "/create/vcard" };
-
 export default function Dashboard() {
+  const { t } = useLang();
   const [items, setItems] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [deleting, setDeleting] = useState(null);
+
+  const typeMeta = {
+    ppt: { label: t("type_file"), icon: FileText, cls: "bg-violet-500/10 text-violet-600" },
+    logo: { label: t("type_logo"), icon: ImageIcon, cls: "bg-amber-500/10 text-amber-600" },
+    url: { label: t("type_url"), icon: LinkIcon, cls: "bg-sky-500/10 text-sky-600" },
+    vcard: { label: t("type_vcard"), icon: Contact, cls: "bg-emerald-500/10 text-emerald-600" },
+  };
 
   const load = async () => {
     try {
@@ -44,13 +53,13 @@ export default function Dashboard() {
   }, []);
 
   const remove = async (id) => {
-    if (!confirm("Delete this QR code? The public link will stop working.")) return;
+    if (!confirm(t("delete_confirm"))) return;
     setDeleting(id);
     try {
       await base44.entities.QRCode.delete(id);
       setItems((prev) => (prev || []).filter((i) => i.id !== id));
     } catch {
-      alert("Could not delete this QR code. Please try again.");
+      alert(t("delete_err"));
     } finally {
       setDeleting(null);
     }
@@ -71,6 +80,15 @@ export default function Dashboard() {
     a.click();
   };
 
+  const openHref = (item) =>
+    item.type === "ppt"
+      ? `/f/${item.id}`
+      : item.type === "vcard"
+      ? `/v/${item.id}`
+      : item.type === "logo"
+      ? `/l/${item.id}`
+      : item.url_value || item.target_url;
+
   if (items === null)
     return (
       <div className="flex justify-center py-24">
@@ -83,30 +101,28 @@ export default function Dashboard() {
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">
-            My QR Codes
+            {t("dash_title")}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            View, edit, download, share or delete your saved QR codes.
-          </p>
+          <p className="text-muted-foreground mt-1">{t("dash_subtitle")}</p>
         </div>
         <Link
           to="/"
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand text-brand-foreground text-sm font-medium hover:opacity-90 transition-opacity"
         >
           <Plus className="w-4 h-4" />
-          New QR code
+          {t("new_qr")}
         </Link>
       </div>
 
       {items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-12 text-center">
-          <p className="text-muted-foreground mb-4">You haven't created any QR codes yet.</p>
+          <p className="text-muted-foreground mb-4">{t("empty_title")}</p>
           <Link
             to="/"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
-            Create your first QR code
+            {t("empty_cta")}
           </Link>
         </div>
       ) : (
@@ -119,9 +135,7 @@ export default function Dashboard() {
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="min-w-0">
                     <h3 className="font-semibold truncate">{item.name}</h3>
-                    <span
-                      className={`inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${meta.cls}`}
-                    >
+                    <span className={`inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${meta.cls}`}>
                       <Icon className="w-3 h-3" />
                       {meta.label}
                     </span>
@@ -142,52 +156,32 @@ export default function Dashboard() {
                 </p>
 
                 <div className="mt-auto grid grid-cols-2 gap-2">
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
+                  <Button asChild variant="outline" size="sm" className="w-full">
                     <Link to={`${editPath[item.type] || "/create/url"}?id=${item.id}`}>
                       <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                      Edit
+                      {t("act_edit")}
                     </Link>
                   </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <a
-                      href={
-                        item.type === "ppt"
-                          ? `/f/${item.id}`
-                          : item.type === "vcard"
-                          ? `/v/${item.id}`
-                          : item.url_value || item.target_url
-                      }
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <a href={openHref(item)} target="_blank" rel="noreferrer">
                       <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-                      Open
+                      {t("act_open")}
                     </a>
                   </Button>
                   <Button onClick={() => downloadPNG(item)} variant="outline" size="sm" className="w-full">
                     <Download className="w-3.5 h-3.5 mr-1.5" />
-                    PNG
+                    {t("png")}
                   </Button>
                   <Button onClick={() => copyLink(item)} variant="outline" size="sm" className="w-full">
                     {copiedId === item.id ? (
                       <>
                         <Check className="w-3.5 h-3.5 mr-1.5" />
-                        Copied
+                        {t("copied")}
                       </>
                     ) : (
                       <>
                         <Copy className="w-3.5 h-3.5 mr-1.5" />
-                        Copy
+                        {t("act_copy")}
                       </>
                     )}
                   </Button>
@@ -204,7 +198,7 @@ export default function Dashboard() {
                   ) : (
                     <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                   )}
-                  Delete
+                  {t("act_delete")}
                 </Button>
               </Card>
             );

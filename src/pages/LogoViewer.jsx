@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, FileText, QrCode } from "lucide-react";
+import { Loader2, Image as ImageIcon, QrCode, Download } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useLang } from "@/lib/i18n";
 
-export default function FileViewer() {
+export default function LogoViewer() {
   const { t } = useLang();
   const { id } = useParams();
   const [rec, setRec] = useState(null);
@@ -18,7 +18,7 @@ export default function FileViewer() {
       try {
         setRec(await base44.entities.QRCode.get(id));
       } catch {
-        setError(t("file_unavail_desc"));
+        setError(t("img_unavail_desc"));
       } finally {
         setLoading(false);
       }
@@ -32,13 +32,13 @@ export default function FileViewer() {
       </div>
     );
 
-  if (error || !rec || rec.type !== "ppt")
+  if (error || !rec || rec.type !== "logo")
     return (
       <div className="min-h-screen grid place-items-center bg-secondary/30 px-4">
         <div className="text-center max-w-md">
-          <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
-          <h1 className="font-display text-2xl font-semibold mb-2">{t("file_unavail")}</h1>
-          <p className="text-muted-foreground">{error || t("file_unavail_desc")}</p>
+          <ImageIcon className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
+          <h1 className="font-display text-2xl font-semibold mb-2">{t("img_unavail")}</h1>
+          <p className="text-muted-foreground">{error || t("img_unavail_desc")}</p>
         </div>
       </div>
     );
@@ -56,22 +56,29 @@ export default function FileViewer() {
           <LanguageSwitcher compact />
         </div>
       </header>
-      <main className="flex-1 grid place-items-center px-4 py-12">
-        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-          <div className="grid place-items-center w-16 h-16 rounded-2xl bg-violet-500/10 text-violet-600 mx-auto mb-5">
-            <FileText className="w-8 h-8" />
+      <main className="flex-1 grid place-items-center px-4 py-10">
+        <div className="w-full max-w-lg">
+          <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+            <div className="bg-secondary/40 grid place-items-center p-4">
+              <img
+                src={rec.file_url}
+                alt={rec.file_name || rec.name}
+                className="max-w-full max-h-[60vh] rounded-lg object-contain"
+              />
+            </div>
+            <div className="p-6">
+              <h1 className="font-display text-xl font-semibold break-words mb-3">
+                {rec.file_name || rec.name}
+              </h1>
+              <Button asChild size="lg" className="w-full">
+                <a href={rec.file_url} download={rec.file_name || undefined}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {t("img_download")}
+                </a>
+              </Button>
+              <p className="text-xs text-muted-foreground mt-3 text-center">{t("shared_via")}</p>
+            </div>
           </div>
-          <h1 className="font-display text-2xl font-semibold mb-1 break-words">
-            {rec.file_name || rec.name}
-          </h1>
-          <p className="text-sm text-muted-foreground mb-6">{t("file_download_desc")}</p>
-          <Button asChild size="lg" className="w-full">
-            <a href={rec.file_url} download={rec.file_name || undefined}>
-              <Download className="w-4 h-4 mr-2" />
-              {t("file_download")}
-            </a>
-          </Button>
-          <p className="text-xs text-muted-foreground mt-4">{t("shared_via")}</p>
         </div>
       </main>
     </div>

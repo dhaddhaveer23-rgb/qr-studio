@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Contact, Loader2, Upload, Plus, Trash2, CheckCircle2, Image as ImageIcon } from "lucide-react";
+import { Contact, Loader2, Upload, Plus, Trash2, Image as ImageIcon } from "lucide-react";
 import QRPreview from "@/components/QRPreview";
 import { publicUrl } from "@/lib/qr";
+import { useLang } from "@/lib/i18n";
 import { BackLink, Header, ErrorNote, PreviewPanel } from "@/pages/CreateURL";
 
 const empty = {
@@ -24,6 +25,7 @@ const empty = {
 };
 
 export default function CreateVCard() {
+  const { t } = useLang();
   const [params] = useSearchParams();
   const editId = params.get("id");
   const [name, setName] = useState("");
@@ -42,10 +44,10 @@ export default function CreateVCard() {
         const r = await base44.entities.QRCode.get(editId);
         setName(r.name || "");
         setV({ ...empty, ...(r.vcard || {}) });
-        setLogoName(r.vcard?.logo_url ? "logo uploaded" : "");
+        setLogoName(r.vcard?.logo_url ? "logo" : "");
         setRecord(r);
       } catch {
-        setError("Could not load this QR code.");
+        setError(t("err_load"));
       } finally {
         setLoadingRecord(false);
       }
@@ -57,7 +59,7 @@ export default function CreateVCard() {
   const onLogo = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (!/^image\//.test(f.type)) return setError("Please upload an image file for the logo.");
+    if (!/^image\//.test(f.type)) return setError(t("err_logo_img"));
     setError("");
     setUploadingLogo(true);
     setLogoName(f.name);
@@ -65,7 +67,7 @@ export default function CreateVCard() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: f });
       set("logo_url", file_url);
     } catch {
-      setError("Logo upload failed. Please try again.");
+      setError(t("err_logo_upload_v"));
       setLogoName("");
     } finally {
       setUploadingLogo(false);
@@ -87,9 +89,9 @@ export default function CreateVCard() {
 
   const generate = async () => {
     setError("");
-    if (!name.trim()) return setError("Please name your QR code.");
+    if (!name.trim()) return setError(t("err_vcard_name"));
     if (!v.contact_name?.trim() && !v.company_name?.trim())
-      return setError("Add at least a company or contact name.");
+      return setError(t("err_vcard_contact"));
     setSaving(true);
     const payload = {
       name: name.trim(),
@@ -114,7 +116,7 @@ export default function CreateVCard() {
         setRecord(updated);
       }
     } catch {
-      setError("Failed to generate QR code. Please try again.");
+      setError(t("err_fail"));
     } finally {
       setSaving(false);
     }
@@ -129,17 +131,13 @@ export default function CreateVCard() {
 
   return (
     <div className="space-y-8">
-      <BackLink label="Back to Home" />
-      <Header
-        icon={Contact}
-        title="Company vCard QR Code"
-        subtitle="Build a digital business card. Scanning shows your info and saves to contacts."
-      />
+      <BackLink label={t("back_home")} />
+      <Header icon={Contact} title={t("vcard_title")} subtitle={t("vcard_subtitle")} />
 
       <div className="grid lg:grid-cols-5 gap-8">
         <div className="lg:col-span-3 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">QR code name</Label>
+            <Label htmlFor="name">{t("qr_name")}</Label>
             <Input
               id="name"
               value={name}
@@ -148,9 +146,8 @@ export default function CreateVCard() {
             />
           </div>
 
-          {/* Logo */}
           <div className="space-y-2">
-            <Label>Company logo</Label>
+            <Label>{t("logo_label_v")}</Label>
             <label className="flex items-center gap-3 rounded-xl border border-dashed border-border p-4 cursor-pointer hover:border-brand/50 hover:bg-secondary/40 transition-colors">
               <input type="file" accept="image/*" className="sr-only" onChange={onLogo} />
               <div className="grid place-items-center w-12 h-12 rounded-lg bg-secondary overflow-hidden shrink-0">
@@ -163,17 +160,17 @@ export default function CreateVCard() {
               <div className="min-w-0">
                 {uploadingLogo ? (
                   <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Uploading…
+                    <Loader2 className="w-4 h-4 animate-spin" /> {t("logo_uploading")}
                   </span>
                 ) : v.logo_url ? (
                   <>
                     <span className="text-sm font-medium block truncate">{logoName}</span>
-                    <span className="text-xs text-muted-foreground">Click to replace</span>
+                    <span className="text-xs text-muted-foreground">{t("logo_replace_v")}</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-sm font-medium block">Upload logo</span>
-                    <span className="text-xs text-muted-foreground">PNG or JPG</span>
+                    <span className="text-sm font-medium block">{t("logo_upload")}</span>
+                    <span className="text-xs text-muted-foreground">PNG / JPG</span>
                   </>
                 )}
               </div>
@@ -181,33 +178,32 @@ export default function CreateVCard() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Company name" value={v.company_name} onChange={(e) => set("company_name", e.target.value)} />
-            <Field label="Contact person" value={v.contact_name} onChange={(e) => set("contact_name", e.target.value)} />
-            <Field label="Job title" value={v.job_title} onChange={(e) => set("job_title", e.target.value)} />
-            <Field label="Phone number" value={v.phone} onChange={(e) => set("phone", e.target.value)} />
-            <Field label="Email" value={v.email} onChange={(e) => set("email", e.target.value)} type="email" />
-            <Field label="Website" value={v.website} onChange={(e) => set("website", e.target.value)} placeholder="https://" />
-            <Field label="WhatsApp number" value={v.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} />
+            <Field label={t("f_company")} value={v.company_name} onChange={(e) => set("company_name", e.target.value)} />
+            <Field label={t("f_contact")} value={v.contact_name} onChange={(e) => set("contact_name", e.target.value)} />
+            <Field label={t("f_job")} value={v.job_title} onChange={(e) => set("job_title", e.target.value)} />
+            <Field label={t("f_phone")} value={v.phone} onChange={(e) => set("phone", e.target.value)} />
+            <Field label={t("f_email")} type="email" value={v.email} onChange={(e) => set("email", e.target.value)} />
+            <Field label={t("f_website")} value={v.website} onChange={(e) => set("website", e.target.value)} placeholder="https://" />
+            <Field label={t("f_whatsapp")} value={v.whatsapp} onChange={(e) => set("whatsapp", e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Company address</Label>
+            <Label htmlFor="address">{t("f_address")}</Label>
             <Textarea
               id="address"
               value={v.address}
               onChange={(e) => set("address", e.target.value)}
               rows={2}
-              placeholder="Street, city, country"
+              placeholder={t("address_placeholder")}
             />
           </div>
 
-          {/* Social links */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Social media links</Label>
+              <Label>{t("social_label")}</Label>
               <Button type="button" variant="outline" size="sm" onClick={addSocial}>
                 <Plus className="w-4 h-4 mr-1.5" />
-                Add
+                {t("social_add")}
               </Button>
             </div>
             <div className="space-y-2">
@@ -215,7 +211,7 @@ export default function CreateVCard() {
                 <div key={i} className="flex gap-2">
                   <Input
                     className="sm:w-40"
-                    placeholder="Platform"
+                    placeholder={t("social_platform")}
                     value={s.platform}
                     onChange={(e) => updateSocial(i, "platform", e.target.value)}
                   />
@@ -231,7 +227,7 @@ export default function CreateVCard() {
                 </div>
               ))}
               {!(v.social_links || []).length && (
-                <p className="text-xs text-muted-foreground">No social links added yet.</p>
+                <p className="text-xs text-muted-foreground">{t("social_empty")}</p>
               )}
             </div>
           </div>
@@ -241,18 +237,18 @@ export default function CreateVCard() {
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating…
+                {t("generating")}
               </>
             ) : record ? (
-              "Regenerate QR code"
+              t("regenerate")
             ) : (
-              "Generate QR code"
+              t("generate")
             )}
           </Button>
         </div>
 
         <div className="lg:col-span-2">
-          <PreviewPanel record={record} type="vcard" />
+          <PreviewPanel record={record} />
         </div>
       </div>
     </div>
