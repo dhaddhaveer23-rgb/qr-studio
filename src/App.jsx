@@ -6,7 +6,14 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-// Add page imports here
+import Layout from '@/components/Layout';
+import Home from '@/pages/Home';
+import CreatePPT from '@/pages/CreatePPT';
+import CreateURL from '@/pages/CreateURL';
+import CreateVCard from '@/pages/CreateVCard';
+import Dashboard from '@/pages/Dashboard';
+import FileViewer from '@/pages/FileViewer';
+import VCardViewer from '@/pages/VCardViewer';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -34,7 +41,15 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/create/ppt" element={<CreatePPT />} />
+        <Route path="/create/url" element={<CreateURL />} />
+        <Route path="/create/vcard" element={<CreateVCard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
+      <Route path="/f/:id" element={<FileViewer />} />
+      <Route path="/v/:id" element={<VCardViewer />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

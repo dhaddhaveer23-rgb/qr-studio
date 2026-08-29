@@ -1,0 +1,92 @@
+{
+  "name": "QRCode",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name",
+      "description": "User-given label for this QR code"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "ppt",
+        "url",
+        "vcard"
+      ],
+      "title": "Type"
+    },
+    "target_url": {
+      "type": "string",
+      "title": "Target URL",
+      "description": "The absolute URL encoded into the QR code"
+    },
+    "url_value": {
+      "type": "string",
+      "title": "URL Value"
+    },
+    "file_url": {
+      "type": "string",
+      "title": "File URL"
+    },
+    "file_name": {
+      "type": "string",
+      "title": "File Name"
+    },
+    "vcard": {
+      "type": "object",
+      "title": "vCard Data",
+      "properties": {
+        "company_name": {
+          "type": "string"
+        },
+        "contact_name": {
+          "type": "string"
+        },
+        "job_title": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "whatsapp": {
+          "type": "string"
+        },
+        "social_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "logo_url": {
+          "type": "string"
+        }
+      }
+    },
+    "logo_url": {
+      "type": "string",
+      "title": "Logo URL"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}
